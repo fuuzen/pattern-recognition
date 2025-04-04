@@ -17,7 +17,7 @@ desktop.ini
 __pycache__
 
 # custom
-result
+result*
 *.log
 *.pid
 *.pdf
