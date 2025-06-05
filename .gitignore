@@ -23,4 +23,4 @@ result*
 *.pdf
 *.zip
 *.rar
-data_splits
+data*
