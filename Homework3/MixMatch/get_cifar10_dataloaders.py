@@ -17,22 +17,23 @@ class UnlabeledDataset(Dataset):
         img2 = self.transform(img)
         return (img1, img2), label
 
+
+train_transform = transforms.Compose([
+    transforms.RandomHorizontalFlip(),
+    transforms.RandomCrop(32, padding=4),
+    transforms.ToTensor(),
+    transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))
+])
+
+
+test_transform = transforms.Compose([
+    transforms.ToTensor(),
+    transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))
+])
+    
+
 def get_cifar10_dataloaders(labeled_indices, batch_size=64, num_workers=2):
     """获取CIFAR-10数据加载器"""
-    
-    # 数据增强
-    train_transform = transforms.Compose([
-        transforms.RandomHorizontalFlip(),
-        transforms.RandomCrop(32, padding=4),
-        transforms.ToTensor(),
-        transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))
-    ])
-    
-    test_transform = transforms.Compose([
-        transforms.ToTensor(),
-        transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))
-    ])
-    
     # 加载CIFAR-10数据集
     labeled_base_dataset = torchvision.datasets.CIFAR10(
         root='./data', train=True, download=True, transform=train_transform

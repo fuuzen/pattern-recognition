@@ -1,6 +1,8 @@
 from torch.utils.data import DataLoader, Dataset, Subset
 import torchvision
 import torchvision.transforms as transforms
+import torchvision.transforms.functional as functional
+import random
 
 
 class FixMatchDataset(Dataset):
@@ -19,49 +21,61 @@ class FixMatchDataset(Dataset):
         strong_aug = self.strong_transform(img)
         return (weak_aug, strong_aug), label
 
+
+ops = [
+    lambda x: functional.rotate(x, random.uniform(-30, 30)),
+    lambda x: functional.adjust_brightness(x, random.uniform(0.5, 1.5)),
+    lambda x: functional.adjust_contrast(x, random.uniform(0.5, 1.5)),
+    lambda x: functional.adjust_saturation(x, random.uniform(0.5, 1.5)),
+]
+
+
+class RandAugment:
+    def __init__(self, n=2, m=10):
+        self.n = n
+        self.m = m
+        
+    def __call__(self, img):
+        for _ in range(self.n):
+            op = random.choice(ops)
+            img = op(img)
+        return img
+
+
+# 标准增强（用于测试）
+test_transform = transforms.Compose([
+    transforms.ToTensor(),
+    transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))
+])
+
+
+# 弱增强
+weak_aug = transforms.Compose([
+    transforms.RandomHorizontalFlip(),
+    transforms.RandomCrop(32, padding=4),
+    transforms.ToTensor(),
+    transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))
+])
+
+
+# 强增强
+strong_aug = transforms.Compose([
+    transforms.RandomHorizontalFlip(),
+    transforms.RandomCrop(32, padding=4),
+    RandAugment(n=2, m=10),
+    transforms.ToTensor(),
+    transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+])
+
+
 def get_cifar10_dataloaders(labeled_indices, batch_size=64, mu=7, num_workers=2):
     """
     获取FixMatch的CIFAR-10数据加载器
     mu: 无标签数据与有标签数据的比例
     """
-    
-    # 标准增强（用于有标签数据和测试）
-    standard_transform = transforms.Compose([
-        transforms.RandomHorizontalFlip(),
-        transforms.RandomCrop(32, padding=4),
-        transforms.ToTensor(),
-        transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))
-    ])
-    
-    # 标准增强（用于测试）
-    test_transform = transforms.Compose([
-        transforms.ToTensor(),
-        transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))
-    ])
-
-    # 创建FixMatch数据集（弱增强）
-    weak_aug = transforms.Compose([
-        transforms.RandomHorizontalFlip(),
-        transforms.RandomCrop(32, padding=4),
-        transforms.ToTensor(),
-        transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))
-    ])
-
-    # 创建FixMatch数据集（强增强）
-    strong_aug = transforms.Compose([
-        transforms.RandomHorizontalFlip(),
-        transforms.RandomCrop(32, padding=4),
-        transforms.ColorJitter(brightness=0.4, contrast=0.4, saturation=0.4, hue=0.1),
-        transforms.RandomGrayscale(p=0.2),
-        transforms.RandomApply([transforms.GaussianBlur(kernel_size=3)], p=0.2),
-        transforms.ToTensor(),
-        transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
-        transforms.RandomErasing(p=0.25, scale=(0.02, 0.33), ratio=(0.3, 3.3))
-    ])
-    
     # 加载CIFAR-10数据集
     labeled_base_dataset = torchvision.datasets.CIFAR10(
-        root='./data', train=True, download=True, transform=standard_transform
+        root='./data', train=True, download=True, transform=weak_aug
     )
     
     unlabeled_base_dataset = torchvision.datasets.CIFAR10(
