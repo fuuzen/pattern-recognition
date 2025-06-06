@@ -5,7 +5,7 @@ import torch.optim as optim
 
 
 def train(evaluate, model, labeled_loader, unlabeled_loader, test_loader, 
-          num_epochs=40, lambda_u=1.0, threshold=0.95, lr=0.03, device='cuda'):
+          num_epochs=20000, lambda_u=1.0, threshold=0.95, lr=0.03, device='cuda'):
     """训练FixMatch模型"""
     
     optimizer = optim.SGD(model.parameters(), lr=lr, momentum=0.9, weight_decay=5e-4)

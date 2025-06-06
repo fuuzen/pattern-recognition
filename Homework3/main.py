@@ -2,7 +2,6 @@
 import torch
 import torchvision
 import random
-import matplotlib.pyplot as plt
 import argparse
 import numpy as np
 
@@ -50,6 +49,30 @@ def evaluate(model, test_loader, device):
     return correct / total
 
 
+def draw(losses, accuracies):
+    """绘制训练曲线"""
+    import matplotlib.pyplot as plt
+
+    plt.figure(figsize=(12, 5))
+    
+    plt.subplot(1, 2, 1)
+    plt.plot(losses)
+    plt.title('Training Loss')
+    plt.xlabel('Epoch (×10)')
+    plt.ylabel('Loss')
+    plt.grid(True)
+    
+    plt.subplot(1, 2, 2)
+    plt.plot(accuracies)
+    plt.title('Test Accuracy')
+    plt.xlabel('Epoch (×10)')
+    plt.ylabel('Accuracy')
+    plt.grid(True)
+    
+    plt.tight_layout()
+    plt.show()
+
+
 def main(args):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print(f'使用设备: {device}')
@@ -57,25 +80,25 @@ def main(args):
     # 创建模型
     model = WideResNet(depth=28, widen_factor=2, num_classes=10).to(device)
     print(f'模型参数数量: {sum(p.numel() for p in model.parameters()):,}')
+
+    # 使用算法
+    if args.type == 'mixmatch':
+        get_cifar10_dataloaders = MixMatch.get_cifar10_dataloaders
+        train = MixMatch.train
+        print('使用算法: mixmatch')
+    elif args.type == 'fixmatch':
+        get_cifar10_dataloaders = FixMatch.get_cifar10_dataloaders
+        train = FixMatch.train
+        print('使用算法: fixmatch')
+    else:
+        print('type has to be mixmatch or fixmatch !')
+        exit(1)
     
     # 准备数据（FixMatch通常使用更少的标签数据）
     print('准备数据集...')
     temp_dataset = torchvision.datasets.CIFAR10(root='./data', train=True, download=True)
     labeled_indices = create_balanced_labeled_subset(temp_dataset, num_labeled_per_class=args.num_labels)
-    
-    if args.type is 'mixmatch':
-        get_cifar10_dataloaders = MixMatch.get_cifar10_dataloaders
-        train = MixMatch.train
-    elif args.type is 'fixmatch':
-        get_cifar10_dataloaders = FixMatch.get_cifar10_dataloaders
-        train = FixMatch.train
-    else:
-        print('type has to be mixmatch or fixmatch !')
-        exit(1)
-
-    labeled_loader, unlabeled_loader, test_loader = get_cifar10_dataloaders(
-        labeled_indices, batch_size=64, mu=7
-    )
+    labeled_loader, unlabeled_loader, test_loader = get_cifar10_dataloaders(labeled_indices)
     
     print(f'有标签样本数: {len(labeled_indices)}')
     print(f'无标签样本数: {50000 - len(labeled_indices)}')
@@ -94,26 +117,6 @@ def main(args):
     final_accuracy = evaluate(model, test_loader, device)
     print(f'\n最终测试准确率: {final_accuracy:.4f}')
     
-    # 绘制训练曲线
-    plt.figure(figsize=(12, 5))
-    
-    plt.subplot(1, 2, 1)
-    plt.plot(train_losses)
-    plt.title('Training Loss')
-    plt.xlabel('Epoch (×10)')
-    plt.ylabel('Loss')
-    plt.grid(True)
-    
-    plt.subplot(1, 2, 2)
-    plt.plot(test_accuracies)
-    plt.title('Test Accuracy')
-    plt.xlabel('Epoch (×10)')
-    plt.ylabel('Accuracy')
-    plt.grid(True)
-    
-    plt.tight_layout()
-    plt.show()
-    
     return model, train_losses, test_accuracies
 
 if __name__ == '__main__':
@@ -121,6 +124,9 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='')
     parser.add_argument('-nl', '--num_labels', type=int, default=40)  # 40, 250, 4000
     parser.add_argument('-ne', '--num_epochs', type=int, default=20000)  # 实验要求
-    parser.add_argument('-t', '--type', type=str, default='mixmatch')  # 实验要求
+    parser.add_argument('-t', '--type', type=str, default='mixmatch')
+    parser.add_argument('-d', '--draw', type=bool, default=False)
     args = parser.parse_args()
     model, losses, accuracies = main(args)
+    if args.draw:
+        draw(losses, accuracies)

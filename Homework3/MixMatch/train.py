@@ -1,11 +1,12 @@
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-from mixmatch import mixup_criterion, mixmatch
+
+from .mixmatch import mixup_criterion, mixmatch
 
 
 def train(evaluate, model, labeled_loader, unlabeled_loader, test_loader, 
-          num_epochs=40, lambda_u=75, lr=0.002, device='cuda'):
+          num_epochs=20000, lambda_u=75, lr=0.002, device='cuda'):
     """训练MixMatch模型"""
     
     optimizer = optim.Adam(model.parameters(), lr=lr)
