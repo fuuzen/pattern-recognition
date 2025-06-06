@@ -98,10 +98,9 @@ def main(args):
     print('准备数据集...')
     temp_dataset = torchvision.datasets.CIFAR10(root='./data', train=True, download=True)
     labeled_indices = create_balanced_labeled_subset(temp_dataset, num_labeled_per_class=args.num_labels)
-    labeled_loader, unlabeled_loader, test_loader = get_cifar10_dataloaders(labeled_indices)
+    labeled_loader, unlabeled_loader, test_loader = get_cifar10_dataloaders(labeled_indices, args.num_iters)
     
     print(f'有标签样本数: {len(labeled_indices)}')
-    print(f'无标签样本数: {50000 - len(labeled_indices)}')
     print(f'无标签数据批次大小: {64 * 7}')
     
     # 训练模型
@@ -109,7 +108,7 @@ def main(args):
     train_losses, test_accuracies = train(
         evaluate, model,
         labeled_loader, unlabeled_loader, test_loader,
-        num_epochs=args.num_epochs,
+        num_iters=args.num_iters,
         device=device
     )
     
@@ -123,7 +122,7 @@ if __name__ == '__main__':
     set_seed(42)
     parser = argparse.ArgumentParser(description='')
     parser.add_argument('-nl', '--num_labels', type=int, default=40)  # 40, 250, 4000
-    parser.add_argument('-ne', '--num_epochs', type=int, default=20000)  # 实验要求
+    parser.add_argument('-ni', '--num_iters', type=int, default=20000)  # 实验要求
     parser.add_argument('-t', '--type', type=str, default='mixmatch')
     parser.add_argument('-d', '--draw', type=bool, default=False)
     args = parser.parse_args()
