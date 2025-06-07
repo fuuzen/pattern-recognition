@@ -23,7 +23,7 @@ def evaluate(model, test_loader, device):
 
 def train(model, labeled_loader, unlabeled_loader, test_loader, 
           num_iters=20000, lambda_u=75, lr=0.002, device='cuda',
-          eval_iter=1000):
+          eval_iter=50):
     """训练MixMatch模型"""
     
     optimizer = optim.Adam(model.parameters(), lr=lr)
@@ -39,9 +39,6 @@ def train(model, labeled_loader, unlabeled_loader, test_loader,
     unlabeled_iter = iter(unlabeled_loader)
 
     model.train()
-    total_loss = 0
-    labeled_loss_total = 0
-    unlabeled_loss_total = 0
     
     for iteration in range(num_iters):
         # 获取有标签数据
@@ -81,11 +78,6 @@ def train(model, labeled_loader, unlabeled_loader, test_loader,
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
-        
-        total_loss += loss.item()
-        labeled_loss_total += labeled_loss.item()
-        unlabeled_loss_total += unlabeled_loss.item()
-        
         scheduler.step()
         
         # 定期评估和打印,更新保存模型
@@ -104,5 +96,5 @@ def train(model, labeled_loader, unlabeled_loader, test_loader,
             print(f'  Learning Rate: {scheduler.get_last_lr()[0]:.6f}')
             print('-' * 50)
     
-    model.save('./model/latest_model.pth', optimizer=optimizer)
+    model.save('./model/mixmatch_latest.pth', optimizer=optimizer)
     return train_losses, test_accuracies

@@ -74,9 +74,11 @@ def main(args):
     # 使用算法
     if args.type == 'mixmatch':
         train = MixMatch.train
+        mu = 1
         print('使用算法: mixmatch')
     elif args.type == 'fixmatch':
         train = FixMatch.train
+        mu = 7
         print('使用算法: fixmatch')
     else:
         print('type has to be mixmatch or fixmatch !')
@@ -86,10 +88,10 @@ def main(args):
     print('准备数据集...')
     temp_dataset = torchvision.datasets.CIFAR10(root='./data', train=True, download=True)
     labeled_indices = create_balanced_labeled_subset(temp_dataset, num_labeled_per_class=args.num_labels)
-    labeled_loader, unlabeled_loader, test_loader = get_cifar10_dataloaders(labeled_indices, args.num_iters)
+    labeled_loader, unlabeled_loader, test_loader = get_cifar10_dataloaders(labeled_indices, args.num_iters, mu=mu)
     
     print(f'有标签样本数: {len(labeled_indices)}')
-    print(f'无标签数据批次大小: {64 * 7}')
+    print(f'无标签数据批次大小: {64 * mu}')
     
     # 训练模型
     print('开始训练...')
@@ -108,7 +110,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='')
     parser.add_argument('-nl', '--num_labels', type=int, default=40)  # 40, 250, 4000
     parser.add_argument('-ni', '--num_iters', type=int, default=20000)  # 实验要求
-    parser.add_argument('-ei', '--eval_iter', type=int, default=1000)
+    parser.add_argument('-ei', '--eval_iter', type=int, default=50)
     parser.add_argument('-t', '--type', type=str, default='mixmatch')
     parser.add_argument('-d', '--draw', type=bool, default=True)
     args = parser.parse_args()

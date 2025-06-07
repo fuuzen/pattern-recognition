@@ -20,7 +20,7 @@ def evaluate(model, test_loader, device):
 
 def train(model, labeled_loader, unlabeled_loader, test_loader, 
           num_iters=20000, lambda_u=1.0, threshold=0.95, lr=0.03, device='cuda',
-          eval_iter=1000):
+          eval_iter=50):
     """训练FixMatch模型"""
     
     optimizer = optim.SGD(model.parameters(), lr=lr, momentum=0.9, weight_decay=5e-4)
@@ -97,5 +97,5 @@ def train(model, labeled_loader, unlabeled_loader, test_loader,
             print(f'  Learning Rate: {scheduler.get_last_lr()[0]:.6f}')
             print('-' * 50)
     
-    model.save('./model/latest_model.pth', optimizer=optimizer)
+    model.save('./model/fixmatch_latest.pth', optimizer=optimizer)
     return train_losses, test_accuracies
