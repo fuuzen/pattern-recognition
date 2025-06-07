@@ -51,8 +51,8 @@ def train(model, labeled_loader, unlabeled_loader, test_loader,
         
         # 获取无标签数据
         unlabeled_batch = next(unlabeled_iter)
-        (unlabeled_data1, unlabeled_data2), _ = unlabeled_batch
-        unlabeled_data = unlabeled_data1.to(device)  # 使用第一个增强版本
+        (unlabeled_data_weak, unlabeled_data_strong), _ = unlabeled_batch
+        unlabeled_data = unlabeled_data_weak.to(device)  # 使用第一个增强版本
         
         # 转换标签为one-hot编码
         labeled_targets_oh = F.one_hot(labeled_targets, num_classes=10).float()

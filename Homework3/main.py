@@ -6,6 +6,7 @@ import argparse
 import numpy as np
 
 from WideResNet import WideResNet
+from get_cifar10_dataloaders import get_cifar10_dataloaders
 import MixMatch
 import FixMatch
 
@@ -72,11 +73,9 @@ def main(args):
 
     # 使用算法
     if args.type == 'mixmatch':
-        get_cifar10_dataloaders = MixMatch.get_cifar10_dataloaders
         train = MixMatch.train
         print('使用算法: mixmatch')
     elif args.type == 'fixmatch':
-        get_cifar10_dataloaders = FixMatch.get_cifar10_dataloaders
         train = FixMatch.train
         print('使用算法: fixmatch')
     else:
