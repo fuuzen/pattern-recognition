@@ -3,6 +3,7 @@ import torch
 import torchvision
 import random
 import argparse
+import os
 import numpy as np
 
 from WideResNet import WideResNet
@@ -36,30 +37,41 @@ def create_balanced_labeled_subset(dataset, num_labeled_per_class):
     return labeled_indices
 
 
-def draw(losses, accuracies, eval_iter, save_path='./images/latest.jpg'):
+def draw(losses, accuracies, args):
     """绘制训练曲线"""
     import matplotlib.pyplot as plt
+    import os
+    plt.figure(figsize=(10, 6))
 
-    plt.figure(figsize=(12, 5))
-    
-    plt.subplot(1, 2, 1)
-    plt.plot(losses)
-    plt.title('Training Loss')
-    plt.xlabel(f'Iteration (×{eval_iter})')
-    plt.ylabel('Loss')
-    plt.grid(True)
-    
-    plt.subplot(1, 2, 2)
-    plt.plot(accuracies)
-    plt.title('Test Accuracy')
-    plt.xlabel(f'Iteration (×{eval_iter})')
-    plt.ylabel('Accuracy')
-    plt.grid(True)
-    
+    # 创建主轴用于绘制 loss
+    ax1 = plt.gca()
+    color = 'tab:red'
+    ax1.set_xlabel(f'Iteration (×{args.eval_iter})')
+    ax1.set_ylabel('Loss', color=color)
+    line1 = ax1.plot(losses, color=color, label='Training Loss')
+    ax1.tick_params(axis='y', labelcolor=color)
+    ax1.grid(True, alpha=0.3)
+
+    # 创建次轴用于绘制 accuracy
+    ax2 = ax1.twinx()
+    color = 'tab:blue'
+    ax2.set_ylabel('Accuracy', color=color)
+    line2 = ax2.plot(accuracies, color=color, label='Test Accuracy')
+    ax2.tick_params(axis='y', labelcolor=color)
+
+    # 添加标题
+    plt.title('Training Loss and Test Accuracy')
+
+    # 添加图例
+    lines = line1 + line2
+    labels = [l.get_label() for l in lines]
+    ax1.legend(lines, labels, loc='upper right')
+
     plt.tight_layout()
-    if save_path:
-        plt.savefig(save_path, dpi=300, bbox_inches='tight')  # dpi 控制分辨率，bbox_inches 防止截断
-        print(f"图片已保存至: {save_path}")
+    save_path = f'./images/{args.type}_{args.num_labels}.png'
+    os.makedirs(os.path.dirname(save_path), exist_ok=True)
+    plt.savefig(save_path, dpi=300, bbox_inches='tight')
+    print(f"图片已保存至: {save_path}")
     plt.show()
 
 
@@ -116,4 +128,4 @@ if __name__ == '__main__':
     args = parser.parse_args()
     model, losses, accuracies = main(args)
     if args.draw:
-        draw(losses, accuracies, args.eval_iter)
+        draw(losses, accuracies, args)
