@@ -7,7 +7,7 @@ from .mixmatch import mixup_criterion, mixmatch
 
 def train(evaluate, model, labeled_loader, unlabeled_loader, test_loader, 
           num_iters=20000, lambda_u=75, lr=0.002, device='cuda',
-          eval_step=1000):
+          eval_iter=1000):
     """训练MixMatch模型"""
     
     optimizer = optim.Adam(model.parameters(), lr=lr)
@@ -73,7 +73,9 @@ def train(evaluate, model, labeled_loader, unlabeled_loader, test_loader,
         scheduler.step()
         
         # 评估
-        if iteration % eval_step == 0:
+        if iteration % eval_iter == 0:
+            model.save('./model/latest_model.pth', optimizer=optimizer, iter=iteration, loss=loss)
+            
             test_acc = evaluate(model, test_loader, device)
             train_losses.append(loss.item())
             test_accuracies.append(test_acc)

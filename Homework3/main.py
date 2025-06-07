@@ -9,6 +9,7 @@ from WideResNet import WideResNet
 import MixMatch
 import FixMatch
 
+
 def set_seed(seed=42):
     torch.manual_seed(seed)
     torch.cuda.manual_seed(seed)

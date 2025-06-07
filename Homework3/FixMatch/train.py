@@ -6,7 +6,7 @@ import torch.optim as optim
 
 def train(evaluate, model, labeled_loader, unlabeled_loader, test_loader, 
           num_iters=20000, lambda_u=1.0, threshold=0.95, lr=0.03, device='cuda',
-          eval_step=1000):
+          eval_iter=1000):
     """训练FixMatch模型"""
     
     optimizer = optim.SGD(model.parameters(), lr=lr, momentum=0.9, weight_decay=5e-4)
@@ -67,8 +67,10 @@ def train(evaluate, model, labeled_loader, unlabeled_loader, test_loader,
         optimizer.step()
         scheduler.step()
         
-        # 定期评估和打印
-        if iteration % eval_step == 0:
+        # 定期评估和打印,更新保存模型
+        if iteration % eval_iter == 0:
+            model.save('./model/latest_model.pth', optimizer=optimizer, iter=iteration, loss=loss)
+            
             test_acc = evaluate(model, test_loader, device)
             train_losses.append(loss.item())
             test_accuracies.append(test_acc)
