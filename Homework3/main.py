@@ -35,7 +35,7 @@ def create_balanced_labeled_subset(dataset, num_labeled_per_class):
     return labeled_indices
 
 
-def draw(losses, accuracies):
+def draw(losses, accuracies, eval_iter, save_path='./images/latest.jpg'):
     """绘制训练曲线"""
     import matplotlib.pyplot as plt
 
@@ -44,18 +44,21 @@ def draw(losses, accuracies):
     plt.subplot(1, 2, 1)
     plt.plot(losses)
     plt.title('Training Loss')
-    plt.xlabel('Epoch (×10)')
+    plt.xlabel(f'Iteration (×{eval_iter})')
     plt.ylabel('Loss')
     plt.grid(True)
     
     plt.subplot(1, 2, 2)
     plt.plot(accuracies)
     plt.title('Test Accuracy')
-    plt.xlabel('Epoch (×10)')
+    plt.xlabel(f'Iteration (×{eval_iter})')
     plt.ylabel('Accuracy')
     plt.grid(True)
     
     plt.tight_layout()
+    if save_path:
+        plt.savefig(save_path, dpi=300, bbox_inches='tight')  # dpi 控制分辨率，bbox_inches 防止截断
+        print(f"图片已保存至: {save_path}")
     plt.show()
 
 
@@ -108,8 +111,8 @@ if __name__ == '__main__':
     parser.add_argument('-ni', '--num_iters', type=int, default=20000)  # 实验要求
     parser.add_argument('-ei', '--eval_iter', type=int, default=1000)
     parser.add_argument('-t', '--type', type=str, default='mixmatch')
-    parser.add_argument('-d', '--draw', type=bool, default=False)
+    parser.add_argument('-d', '--draw', type=bool, default=True)
     args = parser.parse_args()
     model, losses, accuracies = main(args)
     if args.draw:
-        draw(losses, accuracies)
+        draw(losses, accuracies, args.eval_iter)
