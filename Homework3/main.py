@@ -107,15 +107,18 @@ def main(args):
     
     # 训练模型
     print('开始训练...')
-    train_losses, test_accuracies = train(
+    train_losses, test_accuracies, optimizer = train(
         model,
         labeled_loader, unlabeled_loader, test_loader,
         num_iters=args.num_iters,
         device=device,
         eval_iter=args.eval_iter
     )
-    
-    return model, train_losses, test_accuracies
+
+    model.save(f'./model/{args.type}_{args.num_labels}.pth', optimizer=optimizer)
+
+    if args.draw:
+        draw(train_losses, test_accuracies, args)
 
 if __name__ == '__main__':
     set_seed(42)
@@ -126,6 +129,4 @@ if __name__ == '__main__':
     parser.add_argument('-t', '--type', type=str, default='mixmatch')
     parser.add_argument('-d', '--draw', type=bool, default=True)
     args = parser.parse_args()
-    model, losses, accuracies = main(args)
-    if args.draw:
-        draw(losses, accuracies, args)
+    main(args)

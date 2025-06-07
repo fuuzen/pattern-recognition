@@ -82,8 +82,6 @@ def train(model, labeled_loader, unlabeled_loader, test_loader,
         
         # 定期评估和打印,更新保存模型
         if (iteration + 1) % eval_iter == 0:
-            # model.save('./model/latest_model.pth', optimizer=optimizer, iter=iteration, loss=loss)
-            
             test_acc = evaluate(model, test_loader, device)
             train_losses.append(loss.item())
             test_accuracies.append(test_acc)
@@ -96,5 +94,4 @@ def train(model, labeled_loader, unlabeled_loader, test_loader,
             print(f'  Learning Rate: {scheduler.get_last_lr()[0]:.6f}')
             print('-' * 50)
     
-    model.save('./model/mixmatch_latest.pth', optimizer=optimizer)
-    return train_losses, test_accuracies
+    return train_losses, test_accuracies, optimizer
