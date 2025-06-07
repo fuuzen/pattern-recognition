@@ -35,21 +35,6 @@ def create_balanced_labeled_subset(dataset, num_labeled_per_class):
     return labeled_indices
 
 
-def evaluate(model, test_loader, device):
-    """评估模型准确率"""
-    model.eval()
-    correct = 0
-    total = 0
-    with torch.no_grad():
-        for data, targets in test_loader:
-            data, targets = data.to(device), targets.to(device)
-            outputs = model(data)
-            _, predicted = torch.max(outputs.data, 1)
-            total += targets.size(0)
-            correct += (predicted == targets).sum().item()
-    return correct / total
-
-
 def draw(losses, accuracies):
     """绘制训练曲线"""
     import matplotlib.pyplot as plt
@@ -107,15 +92,12 @@ def main(args):
     # 训练模型
     print('开始训练...')
     train_losses, test_accuracies = train(
-        evaluate, model,
+        model,
         labeled_loader, unlabeled_loader, test_loader,
         num_iters=args.num_iters,
-        device=device
+        device=device,
+        eval_iter=args.eval_iter
     )
-    
-    # 最终评估
-    final_accuracy = evaluate(model, test_loader, device)
-    print(f'\n最终测试准确率: {final_accuracy:.4f}')
     
     return model, train_losses, test_accuracies
 
@@ -124,6 +106,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='')
     parser.add_argument('-nl', '--num_labels', type=int, default=40)  # 40, 250, 4000
     parser.add_argument('-ni', '--num_iters', type=int, default=20000)  # 实验要求
+    parser.add_argument('-ei', '--eval_iter', type=int, default=1000)
     parser.add_argument('-t', '--type', type=str, default='mixmatch')
     parser.add_argument('-d', '--draw', type=bool, default=False)
     args = parser.parse_args()

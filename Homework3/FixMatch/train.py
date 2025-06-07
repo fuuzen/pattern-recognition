@@ -3,8 +3,22 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 
+def evaluate(model, test_loader, device):
+    """评估模型准确率"""
+    model.eval()
+    correct = 0
+    total = 0
+    with torch.no_grad():
+        for data, targets in test_loader:
+            data, targets = data.to(device), targets.to(device)
+            outputs = model(data)
+            _, predicted = torch.max(outputs.data, 1)
+            total += targets.size(0)
+            correct += (predicted == targets).sum().item()
+    return correct / total
 
-def train(evaluate, model, labeled_loader, unlabeled_loader, test_loader, 
+
+def train(model, labeled_loader, unlabeled_loader, test_loader, 
           num_iters=20000, lambda_u=1.0, threshold=0.95, lr=0.03, device='cuda',
           eval_iter=1000):
     """训练FixMatch模型"""
@@ -68,20 +82,20 @@ def train(evaluate, model, labeled_loader, unlabeled_loader, test_loader,
         scheduler.step()
         
         # 定期评估和打印,更新保存模型
-        if iteration % eval_iter == 0:
-            model.save('./model/latest_model.pth', optimizer=optimizer, iter=iteration, loss=loss)
+        if (iteration + 1) % eval_iter == 0:
+            # model.save('./model/latest_model.pth', optimizer=optimizer, iter=iteration, loss=loss)
             
             test_acc = evaluate(model, test_loader, device)
             train_losses.append(loss.item())
             test_accuracies.append(test_acc)
             
-            print(f'Iteration {iteration}/{num_iters}:')
+            print(f'Iteration {iteration + 1}/{num_iters}:')
             print(f'  Total Loss: {loss.item():.4f}')
             print(f'  Labeled Loss: {labeled_loss.item():.4f}')
             print(f'  Unlabeled Loss: {unlabeled_loss.item():.4f}')
-            print(f'  Mask Ratio: {mask.float().mean().item():.4f}')
             print(f'  Test Accuracy: {test_acc:.4f}')
             print(f'  Learning Rate: {scheduler.get_last_lr()[0]:.6f}')
             print('-' * 50)
     
+    model.save('./model/latest_model.pth', optimizer=optimizer)
     return train_losses, test_accuracies
