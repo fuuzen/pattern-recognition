@@ -39,7 +39,7 @@
       </tr>
       <tr style="font-weight:normal;"> 
             <td style="width:20%;text-align:center;">报告时间</td>
-            <td style="width:40%;font-weight:normal;border-bottom: 1px solid;text-align:center;font-family:华文仿宋">2025年06月07日</td>
+            <td style="width:40%;font-weight:normal;border-bottom: 1px solid;text-align:center;font-family:华文仿宋">2025年06月08日</td>
       </tr>
     </tbody>              
     </table>
@@ -425,17 +425,19 @@ else:
 以下是我的 MixMatch(左列) 和 FixMatch(右列) 用每类 40(第一行)、250(第二行)、4000(第三行) 训练过程的损失和测试准确率变化情况图：
 
 <div style="text-align: center;">
-  <img src="images/torchssl_mixmatch_40.png" alt="torchssl_mixmatch_40" style="zoom:15%;" />
-  <img src="images/torchssl_fixmatch_40.png" alt="torchssl_fixmatch_40" style="zoom:15%;" />
+  <img src="images/torchssl_mixmatch_40.png" alt="torchssl_mixmatch_40" style="zoom:14%;" />
+  <img src="images/torchssl_fixmatch_40.png" alt="torchssl_fixmatch_40" style="zoom:14%;" />
 </div>
 <div style="text-align: center;">
-  <img src="images/torchssl_mixmatch_250.png" alt="torchssl_mixmatch_250" style="zoom:15%;" />
-  <img src="images/torchssl_fixmatch_250.png" alt="torchssl_fixmatch_250" style="zoom:15%;" />
+  <img src="images/torchssl_mixmatch_250.png" alt="torchssl_mixmatch_250" style="zoom:14%;" />
+  <img src="images/torchssl_fixmatch_250.png" alt="torchssl_fixmatch_250" style="zoom:14%;" />
 </div>
 <div style="text-align: center;">
-  <img src="images/torchssl_mixmatch_4000.png" alt="torchssl_mixmatch_4000" style="zoom:15%;" />
-  <img src="images/torchssl_fixmatch_4000.png" alt="torchssl_fixmatch_4000" style="zoom:15%;" />
+  <img src="images/torchssl_mixmatch_4000.png" alt="torchssl_mixmatch_4000" style="zoom:14%;" />
+  <img src="images/torchssl_fixmatch_4000.png" alt="torchssl_fixmatch_4000" style="zoom:14%;" />
 </div>
+
+
 
 注意到 TorchSSL 使用 Tensorboard 收集了 Top-1 和 Top-5 ACC 两种准确率评估，这里我只看 Top-1 ACC，因为我的代码实现只收集了这一种。可以看到：
 
@@ -443,7 +445,7 @@ else:
 - 对于每类 250 个有标签数据，我的实现训练都只能达到 70% 左右，但是 TorchSSL 的 FixMatch 能够到达 85%
 - 对于每类 4000 个有标签数据，我的实现训练都只能达到 80% 左右，但是 TorchSSL 能够到达 99%
 
-TorchSSL 的代码实现更加复杂，相比之下比我的代码训练效果要更好。
+TorchSSL 的代码实现更加复杂，所以相比之下比代码训练效果要更好。
 
 另外，比较我的代码和 TorchSSL 的代码的训练时间，在相同算法和 iteration 条件下，训练时间基本没有差别。同时显存占用也基本没有差别，因为使用的 batch_size 都相同。
 
@@ -468,8 +470,8 @@ TorchSSL 的代码实现更加复杂，相比之下比我的代码训练效果�
 | 伪标签      | 锐化后的平均预测                  | 阈值过滤的高置信度预测            |
 | 损失函数    | 对mixup后的数据MSE或交叉熵         | 交叉熵损失                        |
 | 超参数      | λu=75, T=0.5, K=2, α=0.75        | λu=1, 阈值=0.95                   |
-| 代码实现    ｜ 更复杂                           | 更简单                            |
+| 代码实现    | 更复杂                          | 更简单                            |
 | 训练显存要求 | 较小                             | 较大，是相同 batch_size 下 MixMatch 的 6～7 倍 |
-| 训练时间    ｜ 较短，训练较快                    | 较长，是相同 batch_size 下 MixMatch 的 4～6 倍 |
+| 训练时间    | 较短，训练较快                   | 较长，是相同 batch_size 下 MixMatch 的 4～6 倍 |
 
 这里训练显存要求和训练时间的比较来自我的代码实现和 TorchSSL 的代码实现进行测试的观察结果。
