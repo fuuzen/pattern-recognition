@@ -3,7 +3,6 @@ import torch
 import torchvision
 import random
 import argparse
-import os
 import numpy as np
 
 from WideResNet import WideResNet
@@ -20,21 +19,6 @@ def set_seed(seed=42):
     random.seed(seed)
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
-
-
-def create_balanced_labeled_subset(dataset, num_labeled_per_class):
-    """创建平衡的有标签子集"""
-    targets = np.array([dataset[i][1] for i in range(len(dataset))])
-    labeled_indices = []
-    
-    for class_idx in range(10):  # CIFAR-10有10个类别
-        class_indices = np.where(targets == class_idx)[0]
-        selected_indices = np.random.choice(
-            class_indices, num_labeled_per_class, replace=False
-        )
-        labeled_indices.extend(selected_indices)
-    
-    return labeled_indices
 
 
 def draw(losses, accuracies, args):
@@ -98,12 +82,7 @@ def main(args):
     
     # 准备数据（FixMatch通常使用更少的标签数据）
     print('准备数据集...')
-    temp_dataset = torchvision.datasets.CIFAR10(root='./data', train=True, download=True)
-    labeled_indices = create_balanced_labeled_subset(temp_dataset, num_labeled_per_class=args.num_labels)
-    labeled_loader, unlabeled_loader, test_loader = get_cifar10_dataloaders(labeled_indices, args.num_iters, mu=mu)
-    
-    print(f'有标签样本数: {len(labeled_indices)}')
-    print(f'无标签数据批次大小: {64 * mu}')
+    labeled_loader, unlabeled_loader, test_loader = get_cifar10_dataloaders(args.num_labels, args.num_iters, mu=mu)
     
     # 训练模型
     print('开始训练...')

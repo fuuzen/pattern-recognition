@@ -28,8 +28,8 @@ def sharpen(p, T=0.5):
     return (p ** (1/T)) / (p ** (1/T)).sum(dim=1, keepdim=True)
 
 
-def mixmatch(X, Y, U, model, T=0.5, K=2, alpha=0.75):
-    """MixMatch算法核心实现"""
+def mixup(X, Y, U, model, T=0.5, K=2, alpha=0.75):
+    """对无标签数据和有标签数据 mixup 得到混合数据"""
     model.eval()
     
     # 为无标签数据生成伪标签

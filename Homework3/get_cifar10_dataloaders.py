@@ -4,6 +4,7 @@ import torchvision
 import torchvision.transforms as transforms
 import torchvision.transforms.functional as functional
 import random
+import numpy as np
 
 
 ops = [
@@ -66,13 +67,27 @@ class UnlabeledDataset(Dataset):
         return (img1, img2), label
 
 
-def get_cifar10_dataloaders(labeled_indices, num_iters=20000, num_workers=2,
+def create_balanced_labeled_subset(dataset, num_labeled_per_class):
+    """创建平衡的有标签子集"""
+    targets = np.array([dataset[i][1] for i in range(len(dataset))])
+    labeled_indices = []
+    
+    for class_idx in range(10):  # CIFAR-10有10个类别
+        class_indices = np.where(targets == class_idx)[0]
+        selected_indices = np.random.choice(
+            class_indices, num_labeled_per_class, replace=False
+        )
+        labeled_indices.extend(selected_indices)
+    
+    return labeled_indices
+
+
+def get_cifar10_dataloaders(num_labels, num_iters=20000, num_workers=2,
                             batch_size=64, test_batch_size=1024, mu=7):
     """
     获取的 CIFAR-10 数据加载器
     mu: 无标签数据与有标签数据的比例
     """
-    # 加载CIFAR-10数据集
     labeled_base_dataset = torchvision.datasets.CIFAR10(
         root='./data', train=True, download=True, transform=weak_transform
     )
@@ -84,6 +99,9 @@ def get_cifar10_dataloaders(labeled_indices, num_iters=20000, num_workers=2,
     labeled_test_dataset = torchvision.datasets.CIFAR10(
         root='./data', train=False, download=True, transform=test_transform
     )
+
+    # 创建平衡的有标签子集
+    labeled_indices = create_balanced_labeled_subset(unlabeled_base_dataset, num_labeled_per_class=num_labels)
     
     # 分割有标签和无标签数据
     all_indices = set(range(len(labeled_base_dataset)))

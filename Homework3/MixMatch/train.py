@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 
-from .mixmatch import mixup_criterion, mixmatch
+from .mixup import mixup_criterion, mixup
 
 
 def evaluate(model, test_loader, device):
@@ -56,7 +56,7 @@ def train(model, labeled_loader, unlabeled_loader, test_loader,
         
         # 执行MixMatch
         X_mixed, (labels_a_X, labels_b_X, lam_X), U_mixed, (labels_a_U, labels_b_U, lam_U) = \
-            mixmatch(labeled_data, labeled_targets_oh, unlabeled_data, model)
+            mixup(labeled_data, labeled_targets_oh, unlabeled_data, model)
         
         # 前向传播
         logits_X = model(X_mixed)
